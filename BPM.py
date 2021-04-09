@@ -15,28 +15,31 @@ matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
 @click.option('--cycle', '-c', 'cycle', default=5, show_default=True, help='How long each cycle takes before calculing BPM')
 @click.option('--brightness', '-b', 'b', default=0.85, show_default=True, help='Percent brightness for the LED')
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
-@click.option('--collection-only', '-co', 'co', is_flag=True, help='Flag to only collect data')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-autocorrelation', '-showa', 'showa', is_flag=True, help='Show the results of autocorrelation')
-def start(t1, cycle, b, f, co, s, showa):
+def start(t1, cycle, b, f, s, showa):
+    click.clear()
     style.use('fivethirtyeight')
     click.echo('The time you selected was: %s' % t1)
     mass_data = []
+    bpms = []
     with click.progressbar(range(0, np.ceil(t1/cycle))) as bar:
         for x in bar:
             data = gather(cycle, f)
             mass_data.append(data)
-    if not co:
-        calculate(data, f, showa)
-        t = np.linspace(0, t1, 10*t1)
-        s = 1 + np.sin(2 * np.pi * t)
-        fig, ax = plt.subplots()
-        ax.plot(t, s)
-        ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-            title='About as simple as it gets, folks')
-        ax.grid()
-        plt.show()
-    s = s or co
+            bpm = calculate(data, f, showa)
+            bpms.append(bpm)
+            avbpm = np.average(bpms)
+            click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
+            click.clear()
+    t = np.linspace(0, t1, 10*t1)
+    s = 1 + np.sin(2 * np.pi * t)
+    fig, ax = plt.subplots()
+    ax.plot(t, s)
+    ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+        title='About as simple as it gets, folks')
+    ax.grid()
+    plt.show()
     if s:
         save(mass_data)
     
