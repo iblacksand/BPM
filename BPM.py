@@ -13,12 +13,12 @@ board = 0
 
 @click.command()
 @click.option('--time', '-t', 't1', default=60, show_default=True, help='Total time to record data in seconds.')
-@click.option('--cycle', '-c', 'cycle', default=5, show_default=True, help='How long each cycle takes before calculing BPM')
+@click.option('--cycle', '-c', 'cycle', default=5, show_default=True, help='How long each cycle takes before calculating BPM')
 @click.option('--brightness', '-b', 'b', default=0.85, show_default=True, help='Percent brightness for the LED')
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-autocorrelation', '-showa', 'showa', is_flag=True, help='Show the results of autocorrelation')
-@click.option('--port', '-p', 'port', default='COM4', )
+@click.option('--port', '-p', 'port', default='COM4', prompt='Arduino Port')
 def start(t1, cycle, b, f, s, showa, port):
     board = pyfirmata.Arduino(port)
     it = pyfirmata.util.Iterator(board)
@@ -37,7 +37,6 @@ def start(t1, cycle, b, f, s, showa, port):
             bpms.append(bpm)
             avbpm = np.average(bpms)
             click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
-            
     t = np.linspace(0, t1, f*t1)
     fig, ax = plt.subplots()
     ax.plot(t, mass_data)
@@ -54,6 +53,7 @@ def gather(cycle, f):
     data = []
     for i in range(0, ceil(cycle/tick)):
         data[i] = board.get_pin('a:0:i')
+        print('Measured Voltage: ' + str(data[i]), end = "\r")
         time.sleep(tick)
     return data
 
@@ -75,5 +75,6 @@ def save(data):
 def autocorr(x):
     result = np.correlate(x, x, mode='full')
     return result[result.size/2:]
+
 if __name__ == '__main__':
     start()
