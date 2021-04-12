@@ -9,6 +9,7 @@ from tkinter.filedialog import asksaveasfile
 from scipy.signal import find_peaks
 
 matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
+board = 0
 
 @click.command()
 @click.option('--time', '-t', 't1', default=60, show_default=True, help='Total time to record data in seconds.')
@@ -17,13 +18,18 @@ matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-autocorrelation', '-showa', 'showa', is_flag=True, help='Show the results of autocorrelation')
-def start(t1, cycle, b, f, s, showa):
+@click.option('--port', '-p', 'port', default='COM4', )
+def start(t1, cycle, b, f, s, showa, port):
+    board = pyfirmata.Arduino(port)
+    it = pyfirmata.util.Iterator(board)
+    it.start()
     click.clear()
     style.use('fivethirtyeight')
     click.echo('The time you selected was: %s' % t1)
     mass_data = []
     bpms = []
     with click.progressbar(range(0, np.ceil(t1/cycle))) as bar:
+        click.clear()
         for x in bar:
             data = gather(cycle, f)
             mass_data.append(data)
@@ -31,11 +37,10 @@ def start(t1, cycle, b, f, s, showa):
             bpms.append(bpm)
             avbpm = np.average(bpms)
             click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
-            click.clear()
-    t = np.linspace(0, t1, 10*t1)
-    s = 1 + np.sin(2 * np.pi * t)
+            
+    t = np.linspace(0, t1, f*t1)
     fig, ax = plt.subplots()
-    ax.plot(t, s)
+    ax.plot(t, mass_data)
     ax.set(xlabel='time (s)', ylabel='voltage (mV)',
         title='About as simple as it gets, folks')
     ax.grid()
@@ -60,6 +65,7 @@ def calculate(data, f, showa):
         bpms[i] = 1/(peaks[i+1] - peaks[i])*f*60
     bpm = np.average(bpms)
     return bpm
+
 def save(data):
     files = [ ('Comma-separated values', '*.csv')]
     file = asksaveasfile(filetypes = files, defaultextension = files)
