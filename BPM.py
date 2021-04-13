@@ -1,4 +1,6 @@
+from os import abort
 import click
+import math
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +11,6 @@ from tkinter.filedialog import asksaveasfile
 from scipy.signal import find_peaks
 
 matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
-board = 0
 
 @click.command()
 @click.option('--time', '-t', 't1', default=60, show_default=True, help='Total time to record data in seconds.')
@@ -18,7 +19,8 @@ board = 0
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-autocorrelation', '-showa', 'showa', is_flag=True, help='Show the results of autocorrelation')
-@click.option('--port', '-p', 'port', default='COM4', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
+@click.option('--port', '-p', 'port', default='/dev/cu.usbmodem11301', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
+# test of this shit
 def start(t1, cycle, b, f, s, showa, port): 
     '''Runs the data collection and calculations
     ''' 
@@ -26,30 +28,32 @@ def start(t1, cycle, b, f, s, showa, port):
     it = pyfirmata.util.Iterator(board)
     it.start()
     click.clear()
+    analog_input = board.get_pin('a:0:i')
+    led = board.get_pin('d:3:p')
+    led.write(b)
     style.use('fivethirtyeight')
     click.echo('The time you selected was: %s' % t1)
     mass_data = []
     bpms = []
-    with click.progressbar(range(0, np.ceil(t1/cycle))) as bar:
-        click.clear()
-        for x in bar:
-            data = gather(cycle, f)
-            mass_data.append(data)
-            bpm = calculate(data, f, showa)
-            bpms.append(bpm)
-            avbpm = np.average(bpms)
-            click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
+    for x in range(0, math.ceil(t1/cycle)):
+        data = gather(analog_input, cycle, f)
+        mass_data.extend(data)
+        bpm = calculate(data, f, showa)
+        bpms.append(bpm)
+        avbpm = np.average(bpms)
+        click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
     t = np.linspace(0, t1, f*t1)
     fig, ax = plt.subplots()
-    ax.plot(t, mass_data)
-    ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-        title='About as simple as it gets, folks')
+    ax.plot(mass_data)
+    ax.set(xlabel='time (s)', ylabel='voltage (V)',
+        title='Total Voltages')
     ax.grid()
+    print('BPM using all data: ' + str(calculate(mass_data, f, showa)))
     plt.show()
     if s:
         save(mass_data)
-    
-def gather(cycle, f):
+
+def gather(analog_input, cycle, f):
     """gathers voltage readings for the specified amount of time
 
     Args:
@@ -61,9 +65,12 @@ def gather(cycle, f):
     """    
     tick = 1/f
     data = []
-    for i in range(0, ceil(cycle/tick)):
-        data[i] = board.get_pin('a:0:i')
-        print('Measured Voltage: ' + str(data[i]), end = "\r")
+    print()
+    for i in range(0, math.ceil(cycle/tick)):
+        reading = analog_input.read()
+        if reading != None:
+            data.append(5*reading)
+            print('Measured Voltage: ' + str(data[len(data)-1]), end = "\r")
         time.sleep(tick)
     return data
 
@@ -79,11 +86,17 @@ def calculate(data, f, showa):
         double: the beats per minute of the signal
     """    
     x = autocorr(data)
-    peaks = find_peaks(x, prominence=1)
-    bpms = []
-    for i in range(0, len(peaks)-1):
-        bpms[i] = 1/(peaks[i+1] - peaks[i])*f*60
-    bpm = np.average(bpms)
+    peaks,_ = find_peaks(x, prominence=1)
+    # bpms = []
+    # for i in range(0, len(peaks[0])-1):
+    #     bpms.append(1/(peaks[0][i+1] - peaks[0][i])*f*60)
+    # bpm = np.average(bpms)
+    bpm = 1/(peaks[len(peaks) - 1] - peaks[len(peaks) - 2])*f*60
+    if showa:
+        fig, (ax, bx) = plt.subplots(1, 2)
+        ax.plot(peaks, x[peaks], "ob"); ax.plot(x); ax.legend(['prominence'])
+        bx.plot(data)
+        plt.show()
     return bpm
 
 def save(data):
@@ -107,7 +120,11 @@ def autocorr(x):
         double array: results of the autocorrelation
     """
     result = np.correlate(x, x, mode='full')
-    return result[result.size/2:]
+    return result[math.floor(result.size/2):]
+
+def normalize(x):
+    norm = np.linalg.norm(x)
+    return x/norm
 
 if __name__ == '__main__':
     start()
