@@ -18,10 +18,10 @@ matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
 @click.option('--brightness', '-b', 'b', default=0.85, show_default=True, help='Percent brightness for the LED')
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
-@click.option('--show-autocorrelation', '-showa', 'showa', is_flag=True, help='Show the results of autocorrelation')
+@click.option('--show-plot', '-showp', 'showp', is_flag=True, help='Show the results of autocorrelation or FFT')
 @click.option('--port', '-p', 'port', default='/dev/cu.usbmodem11301', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
 # test of this shit
-def start(t1, cycle, b, f, s, showa, port): 
+def start(t1, cycle, b, f, s, showp, port): 
     '''Runs the data collection and calculations
     ''' 
     board = pyfirmata.Arduino(port)
@@ -38,7 +38,7 @@ def start(t1, cycle, b, f, s, showa, port):
     for x in range(0, math.ceil(t1/cycle)):
         data = gather(analog_input, cycle, f)
         mass_data.extend(data)
-        bpm = calculate(data, f, showa)
+        bpm = calcfft(data, f, showp)
         bpms.append(bpm)
         avbpm = np.average(bpms)
         click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
@@ -74,7 +74,7 @@ def gather(analog_input, cycle, f):
         time.sleep(tick)
     return data
 
-def calculate(data, f, showa):
+def calcauto(data, f, showa):
     """calculates the beats per minute of a provided signal
 
     Args:
@@ -121,6 +121,34 @@ def autocorr(x):
     """
     result = np.correlate(x, x, mode='full')
     return result[math.floor(result.size/2):]
+
+
+def calcfft(data, f, showf):
+    """calculates bpm using FFT
+
+    Args:
+        data (double array): data to calculate BPM from
+        f (double): frequency of signal
+        showf (boolean): controls whether graph of fft is shown
+    
+    Returns:
+        double: beats per minute found in the signal
+    """    
+    data = data - np.average(data)
+    Y = np.fft.fft(data)
+    Y = np.abs(Y)
+    freq = np.fft.fftfreq(len(data), 1/f)
+    peaks,_ = find_peaks(Y, prominence=1)
+    locY = np.argmax(Y) # Find max peak
+    maxf = freq[locY]
+    print("max frequency: " + str(maxf))
+    print("Converted to bpm: " + str(maxf*60))
+    if showf:
+        fig, (ax, bx) = plt.subplots(1, 2)
+        ax.plot(Y); ax.plot(peaks, Y[peaks], "ob");  ax.legend(['prominence'])
+        bx.plot(data)
+        plt.show()
+    return maxf*60
 
 def normalize(x):
     norm = np.linalg.norm(x)

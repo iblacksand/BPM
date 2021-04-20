@@ -11,13 +11,15 @@ from tkinter.filedialog import asksaveasfile
 from scipy.signal import find_peaks
 # Testing printing out the data
 def start():
-    bpm = 210;
-    f = 1000
-    x = np.arange(0,30,1/(f))  #interval=0.1, 300 samples
-    y = np.abs(np.sin(bpm/60*np.pi*x))
+    bpm = 10
+    f = 100
+    noiselevel = 1
+    randgen = np.random
+    x = np.arange(0,5,1/(f))  #interval=0.1, 300 samples
+    noise = noiselevel*randgen.randn(len(x))
+    y = np.abs(np.sin(bpm/60*np.pi*x) + noise)
     # f = calculate(y, f, True);
     g = calcspec(y, f, True);
-    print(f)
 
 def calculate(data, f, showa):
     """calculates the beats per minute of a provided signal
@@ -103,7 +105,8 @@ def calcspec(data, f, showf):
     if showf:
         fig, (ax, bx) = plt.subplots(1, 2)
         ax.plot(Y); ax.plot(peaks, Y[peaks], "ob");  ax.legend(['prominence'])
-        bx.plot(Y)
+        bx.plot(data)
         plt.show()
+    return maxf*60
 if __name__ == '__main__':
     start()
