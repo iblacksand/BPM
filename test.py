@@ -11,9 +11,9 @@ from tkinter.filedialog import asksaveasfile
 from scipy.signal import find_peaks
 # Testing printing out the data
 def start():
-    bpm = 10
+    bpm = 140
     f = 100
-    noiselevel = 1
+    noiselevel = .25
     randgen = np.random
     x = np.arange(0,5,1/(f))  #interval=0.1, 300 samples
     noise = noiselevel*randgen.randn(len(x))
@@ -108,5 +108,6 @@ def calcspec(data, f, showf):
         bx.plot(data)
         plt.show()
     return maxf*60
+
 if __name__ == '__main__':
     start()

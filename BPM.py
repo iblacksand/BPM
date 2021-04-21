@@ -1,4 +1,5 @@
 from os import abort
+from test import calcspec
 import click
 import math
 import matplotlib
@@ -19,7 +20,7 @@ matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-plot', '-showp', 'showp', is_flag=True, help='Show the results of autocorrelation or FFT')
-@click.option('--port', '-p', 'port', default='/dev/cu.usbmodem11301', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
+@click.option('--port', '-p', 'port', default='/dev/cu.usbmodem1101', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
 # test of this shit
 def start(t1, cycle, b, f, s, showp, port): 
     '''Runs the data collection and calculations
@@ -48,8 +49,8 @@ def start(t1, cycle, b, f, s, showp, port):
     ax.set(xlabel='time (s)', ylabel='voltage (V)',
         title='Total Voltages')
     ax.grid()
-    print('BPM using all data: ' + str(calculate(mass_data, f, showa)))
-    plt.show()
+    print('BPM using all data: ' + str(calcspec(mass_data, f, showp)))
+    # plt.show()
     if s:
         save(mass_data)
 
@@ -106,9 +107,9 @@ def save(data):
         data (double array): array to save into a csv file
     """    
     files = [ ('Comma-separated values', '*.csv')]
-    file = asksaveasfile(filetypes = files, defaultextension = files)
+    # file = asksaveasfile(filetypes = files, defaultextension = files)
     a = np.asarray(data)
-    a.tofile(file.name,sep=',',format='%10.5f')
+    a.tofile("test.csv",sep=',',format='%10.5f')
 
 def autocorr(x):
     """runs autocorrelation on the provided array
@@ -133,7 +134,8 @@ def calcfft(data, f, showf):
     
     Returns:
         double: beats per minute found in the signal
-    """    
+    """
+    data = normalize(data)    
     data = data - np.average(data)
     Y = np.fft.fft(data)
     Y = np.abs(Y)
