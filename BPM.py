@@ -20,12 +20,13 @@ matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
 @click.option('--frequency', '-f', 'f', default=20, show_default=True, help='Data acquisition frequency.')
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-plot', '-showp', 'showp', is_flag=True, help='Show the results of autocorrelation or FFT')
-@click.option('--port', '-p', 'port', default='/dev/cu.usbmodem1101', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
+@click.option('--port', '-p', 'port', default='/dev/cu.usbmodem1301', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
 # test of this shit
 def start(t1, cycle, b, f, s, showp, port): 
     '''Runs the data collection and calculations
     ''' 
     board = pyfirmata.Arduino(port)
+    
     it = pyfirmata.util.Iterator(board)
     it.start()
     click.clear()
@@ -39,7 +40,7 @@ def start(t1, cycle, b, f, s, showp, port):
     for x in range(0, math.ceil(t1/cycle)):
         data = gather(analog_input, cycle, f)
         mass_data.extend(data)
-        bpm = calcfft(data, f, showp)
+        bpm = calcspec(data, f, showp)
         bpms.append(bpm)
         avbpm = np.average(bpms)
         click.echo("\nCurrent BPM: " + str(bpm) + "\n" + "Average BPM: "+ str(avbpm))
@@ -140,6 +141,14 @@ def calcfft(data, f, showf):
     Y = np.fft.fft(data)
     Y = np.abs(Y)
     freq = np.fft.fftfreq(len(data), 1/f)
+    Y = Y[:int(len(Y)/2)]
+    freq = freq[:int(len(freq)/2)]
+    K = 240/60
+    idx = (np.abs(freq - K)).argmin()
+    K2 = 50/60
+    idx2 = (np.abs(freq - K2)).argmin()
+    Y = Y[idx2:idx]
+    freq = freq[idx2:idx]
     peaks,_ = find_peaks(Y, prominence=1)
     locY = np.argmax(Y) # Find max peak
     maxf = freq[locY]
