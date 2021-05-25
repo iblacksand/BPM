@@ -38,3 +38,21 @@ Pip Packages:
 - pyfirmata
 - tkinter
 - scipy
+
+## Arduino Set-up
+
+1. Install Firmata onto Arduino
+  - Instructions can be found [here.](https://ecraft2learn.github.io/uui/about/firmata-installation-instructions.pdf)
+2. Note the port used by the Arduino(ex: `COM4`)
+
+## Example command
+
+If the port is COM4, you can run the following command
+
+```
+python BPM.py -p COM4 -f 20 -t 30
+```
+
+This will collect data for 30 seconds with a frequency of 20 Hz using port `COM4`.
+
+If you ever need to quit, you can use <kbd>CTRL+C</kbd>.
