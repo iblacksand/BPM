@@ -4,6 +4,9 @@ Code of the Baby Pulse Monitor CLI
 
 ## Options
 
+
+### Python
+
 From `python BPM.py --help`:
 
 ```
@@ -28,7 +31,15 @@ Options:
   --help                   Show this message and exit.
 ```
 
-## Requirements
+### MATLAB
+
+To use MATLAB, you need to install [Arduino Support from MATLAB](https://www.mathworks.com/hardware-support/arduino-matlab.html).
+
+To run the program, open MATLAB and run the `bpm.m` file. Before running, make sure your parameters at the top of the file are correct.
+
+*Warning: The MATLAB script has not been tested.*
+
+## Python Requirements
 
 Pip Packages:
 
@@ -39,13 +50,13 @@ Pip Packages:
 - tkinter
 - scipy
 
-## Arduino Set-up
+## Python Arduino Set-up
 
 1. Install Firmata onto Arduino
   - Instructions can be found [here.](https://ecraft2learn.github.io/uui/about/firmata-installation-instructions.pdf)
 2. Note the port used by the Arduino(ex: `COM4`)
 
-## Example command
+## Python Example command
 
 If the port is COM4, you can run the following command
 
