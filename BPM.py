@@ -136,7 +136,7 @@ def calcfft(data, f, showf):
     Returns:
         double: beats per minute found in the signal
     """
-    data = normalize(data)    
+    data = normalize(data)
     data = data - np.average(data)
     Y = np.fft.fft(data)
     Y = np.abs(Y)

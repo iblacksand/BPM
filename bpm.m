@@ -1,8 +1,33 @@
-function test()
-    Fs = 20; % Frequency of Measurement
-    data = load('test.csv'); % Data has to be loaded from test.csv
+function bpm()
+    %% PARAMETERS
+
+    PORT = 'com4'; % port being used by arduino (string)
+    BOARD_TYPE = 'uno'; % type of arduino board (string)
+    CYCLE_TIME = 5; % length of one cycle (integer; seconds)
+    TOTAL_TIME = 60; % total time to measure (integer; seconds)
+    ACQUISITION_RATE = 40; % frequency of sensor (integer; Hz)
+    SAVE_DATA = false; % should the data be saved (boolean)
+
+    %% ACQUISITION PHASE
+
+    f = waitbar(0,'Please wait...');
+    a = arduino(PORT, ); % Change com4 to the port that is being used by the arduino
+    c = ceil(TOTAL_TIME/CYCLE_TIME); % total number of cycles 
+    for i = 1:c
+        data = [];
+        for j = 1:ceil(CYCLE_TIME*ACQUISITION_RATE)
+            v = readVoltage(a, 'A0'); % read data from port
+            waitbar((i*j)/(TOTAL_TIME*ACQUISITION_RATE),f,"LIVE VOLTAGE: " + v); % display data
+            data = [data, v]; % add to array
+            java.lang.Thread.sleep(1000/ACQUISITION_RATE); % sleep for the set period of time
+        end
+        calculate(data, ACQUISITION_RATE, TOTAL_TIME); % calculate BPM
+    end
+end
+
+function calculate(data, Fs, TOTAL_TIME)
     figure
-    t = linspace(1/Fs, 20, length(data)); % get time domain
+    t = linspace(1/Fs, TOTAL_TIME, length(data)); % get time domain
     plot(t,data) % plot data vs. time
     data = data./norm(data); % normalize data
     Y = fft(data); % get fft
@@ -22,17 +47,6 @@ function test()
 
     [Ys,I] = max(abs(Y));  % find max point
     
-    %% Using maximum peak
-
-    % plot max point
-    % figure
-    % plot(60*freq, abs(Y), 'Color', [0 63/255 92/255], 'LineWidth', 3)
-    % hold on
-    % plot(60*freq(I), abs(Y(I)),'.', 'MarkerSize', 32, 'Color', [188, 80, 144]/255);
-    % plot([60*freq(I),60*freq(I)], [0, abs(Y(I))], 'g--', 'LineWidth',3, 'Color', [188, 80, 144]/255, 'HandleVisibility','off')
-    % disp("Max BPM: " + freq(I)*60) 
-    % xlabel("Frequency (BPM)")
-
     % Save fft
     Y1 = Y;
     Y = abs(Y);
