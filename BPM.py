@@ -1,5 +1,5 @@
 from os import abort
-from test import calcspec
+from examples.test import calcspec
 import click
 import math
 import matplotlib
