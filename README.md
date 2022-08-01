@@ -1,6 +1,6 @@
 # BPM
 
-Code of the Baby Pulse Monitor CLI
+Code of the Baby Pulse Monitor (BPM) CLI
 
 ## Options
 
@@ -12,7 +12,7 @@ From `python BPM.py --help`:
 ```
 Usage: BPM.py [OPTIONS]
 
-  Runs the data collection and calculations
+  Runs the data collection and calculations for the Baby Pulse Monitor
 
 Options:
   -t, --time INTEGER       Total time to record data in seconds.  [default:
@@ -67,3 +67,7 @@ python BPM.py -p COM4 -f 20 -t 30
 This will collect data for 30 seconds with a frequency of 20 Hz using port `COM4`.
 
 If you ever need to quit, you can use <kbd>CTRL+C</kbd>.
+
+## Examples
+
+Examples have been provided. To load test data, use `examples/test.m', and change the `data` variable in line 3 to the data file you want to analyze.

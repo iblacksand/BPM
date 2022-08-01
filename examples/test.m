@@ -1,6 +1,6 @@
 function test()
     Fs = 20; % Frequency of Measurement
-    data = load('test.csv'); % Data has to be loaded from test.csv
+    data = load('example_data/test.csv'); % Data has to be loaded from test.csv
     figure
     t = linspace(1/Fs, 20, length(data)); % get time domain
     plot(t,data) % plot data vs. time

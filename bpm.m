@@ -63,6 +63,6 @@ function calculate(data, Fs, TOTAL_TIME)
     legend('FFT', 'Max Peak', 'Prominence', 'FontWeight','normal');
     title('FFT Peak Detection')
     set(gca,'FontSize',18)
-    set(gca,'fontname',"Palatino")
+    set(gca,'fontname',"Inter")
     set(gca,'FontWeight','bold')
 end
