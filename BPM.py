@@ -1,5 +1,5 @@
 from os import abort
-from examples.test import calcspec
+from examples.example import calcspec
 import click
 import math
 import matplotlib
@@ -21,7 +21,6 @@ matplotlib.rcParams['font.sans-serif'] = ['Palatino', 'sans-serif']
 @click.option('--save', '-s', 's', is_flag=True, help='save the data after processing')
 @click.option('--show-plot', '-showp', 'showp', is_flag=True, help='Show the results of autocorrelation or FFT')
 @click.option('--port', '-p', 'port', default='/dev/cu.usbmodem1301', show_default=True, prompt='Arduino Port', help='The port of the Arduino.')
-# test of this shit
 def start(t1, cycle, b, f, s, showp, port): 
     '''Runs the data collection and calculations
     ''' 
