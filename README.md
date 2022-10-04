@@ -37,8 +37,6 @@ To use MATLAB, you need to install [Arduino Support from MATLAB](https://www.mat
 
 To run the program, open MATLAB and run the `bpm.m` file. Before running, make sure your parameters at the top of the file are correct.
 
-*Warning: The MATLAB script has not been tested.*
-
 ## Python Requirements
 
 Pip Packages:
